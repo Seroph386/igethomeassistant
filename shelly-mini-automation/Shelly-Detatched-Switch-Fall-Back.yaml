@@ -29,16 +29,6 @@ blueprint:
       selector:
         entity:
           domain: light
-
-    monitor_switch:
-      name: "[Monitored]* switch"
-      description: >
-        REQUIRED Switch on light to monitor to confirm command 
-        Will be monitored and used to trigger confirm switch when state successfully changes.
-      selector:
-        entity:
-          domain: switch
-
     confirm_switch:
       name: "[Confirm]* switch" 
       description: >
@@ -67,7 +57,7 @@ actions:
           - condition: trigger
             id: Switch_on
           - condition: state
-            entity_id: !input monitor_switch
+            entity_id: !input lamp_entity
             state: "on"
         sequence:
           - action: switch.turn_on
@@ -79,7 +69,7 @@ actions:
           - condition: trigger
             id: Switch_off
           - condition: state
-            entity_id: !input monitor_switch
+            entity_id: !input lamp_entity
             state: "off"
         sequence:
           - action: switch.turn_on
@@ -97,10 +87,10 @@ actions:
               - action: light.turn_on
                 metadata: {}
                 target:
-                  entity_id: light.game_room_light
+                  entity_id: !input lamp_entity
                 data: {}
               - wait_for_trigger:
-                  - entity_id: !input monitor_switch
+                  - entity_id: !input lamp_entity
                     to: "on"
                     trigger: state
               - action: switch.turn_on
@@ -115,10 +105,10 @@ actions:
               - action: light.turn_off
                 metadata: {}
                 target:
-                  entity_id: light.game_room_light
+                  entity_id: !input lamp_entity
                 data: {}
               - wait_for_trigger:
-                  - entity_id: !input monitor_switch
+                  - entity_id: !input lamp_entity
                     to: "off"
                     trigger: state
               - action: switch.turn_on
