@@ -48,9 +48,6 @@ blueprint:
         entity:
           domain: switch
 
-variables:
-  monitor_switch_device_id_var: "{{device_id('!input monitor_switch')}}"
-
 triggers:
   - trigger: state
     entity_id: !input primary_input
@@ -116,10 +113,8 @@ actions:
     default:
       - wait_for_trigger:
           - type: changed_states
-            device_id: monitor_switch_device_id_var
             entity_id: !input monitor_switch
-            domain: switch
-            trigger: device
+            trigger: switch.device
       - action: switch.turn_on
         metadata: {}
         data: {}
