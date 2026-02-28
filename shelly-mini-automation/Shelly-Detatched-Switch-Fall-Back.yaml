@@ -1,0 +1,128 @@
+blueprint:
+  name: Shelly Detached Switch Fall Back - Single Button v1.0
+  domain: automation
+  description:
+    "# Shelly Detached Switch Fall Back - Single Button v1.0**\n\n\
+    Use a physical wall switch to control smart lights **without cutting power**.\n\
+    Designed for Shelly Gen3/Gen4 devices in **detached mode**.\n\n\
+    Thanks to the optional local Shelly fallback, basic interaction remains functional\n\
+    even when Home Assistant is temporarily unavailable increasing the WAF factor.\n\n\
+    ---\n\
+    ## Supported Modes\n\n\
+    Switch mode binary_sensor based wall switch\n\
+    Lamp mode control a light directly\n\
+    Fields marked with * are required by Home Assistant,\n\
+    but may be ignored depending on your selected mode.\n"
+  input:
+    primary_input:
+      name: "[Switch mode]* Binary sensor input"
+      description: >
+        REQUIRED by Home Assistant.
+      selector:
+        entity:
+          domain: binary_sensor
+    lamp_entity:
+      name: "[Lamp mode]* Lamp entity"
+      description: >
+        REQUIRED when Action mode is 'lamp'.
+        Ignored when Action mode is 'custom'.
+      selector:
+        entity:
+          domain: light
+
+    monitor_switch:
+      name: "[Monitored]* switch"
+      description: >
+        REQUIRED Switch on light to monitor to confirm command 
+        Will be monitored and used to trigger confirm switch when state successfully changes.
+      selector:
+        entity:
+          domain: switch
+
+    confirm_switch:
+      name: "[Confirm]* switch" 
+      description: >
+        REQUIRED Shelly feedback output.
+        Will be turned ON after each action to provide local confirmation.
+      selector:
+        entity:
+          domain: switch
+
+variables:
+  monitor_switch_device_id_var: "{{device_id(!input monitor_switch)}}"
+
+triggers:
+  - trigger: state
+    entity_id: !input primary_input
+    from: "off"
+    to: "on"
+    id: Switch_on
+  - trigger: state
+    entity_id: !input primary_input
+    from: "on"
+    to: "off"
+    id: Switch_off
+conditions: []
+actions:
+  - choose:
+      - conditions:
+          - condition: trigger
+            id: Switch_on
+        sequence:
+          - action: light.turn_on
+            metadata: {}
+            target:
+              entity_id: !input lamp_entity
+            data: {}
+      - conditions:
+          - condition: trigger
+            id:
+              - Switch_off
+        sequence:
+          - action: light.turn_off
+            metadata: {}
+            target:
+              entity_id: !input lamp_entity
+            data: {}
+  - choose:
+      - conditions:
+          - condition: trigger
+            id:
+              - Switch_on
+          - condition: state
+            entity_id: !input monitor_switch
+            state:
+              - "on"
+        sequence:
+          - action: switch.turn_on
+            metadata: {}
+            target:
+              entity_id: !input primary_input
+            data: {}
+      - conditions:
+          - condition: trigger
+            id:
+              - Switch_off
+          - condition: state
+            entity_id: !input monitor_switch
+            state:
+              - "off"
+        sequence:
+          - action: switch.turn_on
+            metadata: {}
+            target:
+              entity_id: !input primary_input
+            data: {}
+    default:
+      - wait_for_trigger:
+          - type: changed_states
+            device_id: monitor_switch_device_id_var
+            entity_id: !input monitor_switch
+            domain: switch
+            trigger: device
+      - action: switch.turn_on
+        metadata: {}
+        data: {}
+        target:
+          entity_id: !input confirm_switch
+mode: single
