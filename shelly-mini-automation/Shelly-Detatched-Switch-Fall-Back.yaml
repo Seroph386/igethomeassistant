@@ -61,63 +61,69 @@ triggers:
     id: Switch_off
 conditions: []
 actions:
-  - choose:
+  - alias: Check if Already in Correct State
+    choose:
       - conditions:
           - condition: trigger
             id: Switch_on
-        sequence:
-          - action: light.turn_on
-            metadata: {}
-            target:
-              entity_id: !input lamp_entity
-            data: {}
-      - conditions:
-          - condition: trigger
-            id:
-              - Switch_off
-        sequence:
-          - action: light.turn_off
-            metadata: {}
-            target:
-              entity_id: !input lamp_entity
-            data: {}
-  - choose:
-      - conditions:
-          - condition: trigger
-            id:
-              - Switch_on
           - condition: state
             entity_id: !input monitor_switch
-            state:
-              - "on"
+            state: "on"
         sequence:
           - action: switch.turn_on
             metadata: {}
             target:
-              entity_id: !input primary_input
+              entity_id: !input confirm_switch
             data: {}
       - conditions:
           - condition: trigger
-            id:
-              - Switch_off
+            id: Switch_off
           - condition: state
             entity_id: !input monitor_switch
-            state:
-              - "off"
+            state: "off"
         sequence:
           - action: switch.turn_on
             metadata: {}
             target:
-              entity_id: !input primary_input
+              entity_id: !input confirm_switch
             data: {}
     default:
-      - wait_for_trigger:
-          - type: changed_states
-            entity_id: !input monitor_switch
-            trigger: switch.device
-      - action: switch.turn_on
-        metadata: {}
-        data: {}
-        target:
-          entity_id: !input confirm_switch
+      - alias: Toggle On or Off
+        choose:
+          - conditions:
+              - condition: trigger
+                id: Switch_on
+            sequence:
+              - action: light.turn_on
+                metadata: {}
+                target:
+                  entity_id: light.game_room_light
+                data: {}
+              - wait_for_trigger:
+                  - entity_id: !input monitor_switch
+                    to: "on"
+                    trigger: state
+              - action: switch.turn_on
+                metadata: {}
+                target:
+                  entity_id: !input confirm_switch
+                data: {}
+          - conditions:
+              - condition: trigger
+                id: Switch_off
+            sequence:
+              - action: light.turn_off
+                metadata: {}
+                target:
+                  entity_id: light.game_room_light
+                data: {}
+              - wait_for_trigger:
+                  - entity_id: !input monitor_switch
+                    to: "off"
+                    trigger: state
+              - action: switch.turn_on
+                metadata: {}
+                target:
+                  entity_id: !input confirm_switch
+                data: {}
 mode: single
