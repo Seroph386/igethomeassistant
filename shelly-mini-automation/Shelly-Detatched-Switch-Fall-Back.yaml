@@ -49,7 +49,7 @@ blueprint:
           domain: switch
 
 variables:
-  monitor_switch_device_id_var: "{{device_id(!input monitor_switch)}}"
+  monitor_switch_device_id_var: "{{device_id('!input monitor_switch')}}"
 
 triggers:
   - trigger: state
