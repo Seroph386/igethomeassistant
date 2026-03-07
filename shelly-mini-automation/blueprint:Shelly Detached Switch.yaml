@@ -1,0 +1,51 @@
+blueprint:
+  name: Shelly Detached Switch Smart Light (Event Confirm)
+  description: Toggle a light from a Shelly detached input and confirm only if the light state changed.
+  domain: automation
+
+  input:
+    switch_input:
+      name: Shelly Input Sensor
+      selector:
+        entity:
+          domain: binary_sensor
+
+    light_target:
+      name: Light
+      selector:
+        entity:
+          domain: light
+
+    confirm_switch:
+      name: Shelly Confirm Switch
+      selector:
+        entity:
+          domain: switch
+
+
+trigger:
+  - platform: state
+    entity_id: !input switch_input
+
+
+variables:
+  light_entity: !input light_target
+  initial_state: "{{ states(light_entity) }}"
+
+
+action:
+
+  - service: light.toggle
+    target:
+      entity_id: !input light_target
+
+  - wait_template: "{{ states(light_entity) != initial_state }}"
+    timeout: "00:00:02"
+    continue_on_timeout: false
+
+  - service: switch.turn_on
+    target:
+      entity_id: !input confirm_switch
+
+
+mode: restart

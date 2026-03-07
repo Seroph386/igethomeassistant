@@ -15,14 +15,14 @@ blueprint:
     but may be ignored depending on your selected mode.\n"
   input:
     primary_input:
-      name: "[Switch mode]* Binary sensor input"
+      name: "[Switch]* Binary sensor input"
       description: >
         REQUIRED by Home Assistant.
       selector:
         entity:
           domain: binary_sensor
     lamp_entity:
-      name: "[Lamp mode]* Lamp entity"
+      name: "[Lamp]* Lamp entity"
       description: >
         REQUIRED when Action mode is 'lamp'.
         Ignored when Action mode is 'custom'.
